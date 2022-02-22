@@ -9,8 +9,8 @@ This file documents my NixOS configuration. To use, all you need to do is enable
 This command uses emacs to tangle the code in this file into a system configuration, and then installs it.
 
 I use org babel's interpolation throughout this config. Whenever you see code like:
-:<<some-name>>
-The code block with #+name: some-name is interpolated into that position.
+: <<some-name>>
+The code block with =#+name: some-name= is interpolated into that position.
 
 ** Flake function
 This function is called in [[./install-flake/flake.nix][the installation flake]] to generate the config.
