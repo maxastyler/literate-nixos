@@ -12,6 +12,8 @@ I use org babel's interpolation throughout this config. Whenever you see code li
 : <<some-name>>
 The code block with =#+name: some-name= is interpolated into that position.
 
+If you want to see the full interpolated files, open this file in emacs and use the function =org-babel-tangle=.
+
 ** Flake function
 This function is called in [[./install-flake/flake.nix][the installation flake]] to generate the config.
 #+begin_src nix :tangle "build-fun.nix"
