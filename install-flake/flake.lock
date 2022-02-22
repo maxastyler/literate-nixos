@@ -1,5 +1,20 @@
 {
   "nodes": {
+    "emacs-overlay": {
+      "locked": {
+        "lastModified": 1645499398,
+        "narHash": "sha256-tGMZmcPmssdjyy8H6KulbXMIdaGyWhgYCpAL9i6u2RQ=",
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "rev": "3e7c26ad5645fc497ee260f35473d8827325268e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1644229661,
@@ -15,18 +30,23 @@
         "type": "github"
       }
     },
-    "flake-utils_2": {
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
-        "lastModified": 1644229661,
-        "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "3cecb5b042f7f209c56ffd8371b2711a290ec797",
+        "lastModified": 1645479152,
+        "narHash": "sha256-8au2xAPSi3yGQBaVrYUpMY30lY9tMuNn7UMAHL7NJtw=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "69536af27e86a9fc875d71cb9566ccccf47b5b60",
         "type": "github"
       },
       "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
+        "owner": "nix-community",
+        "repo": "home-manager",
         "type": "github"
       }
     },
@@ -48,25 +68,26 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "emacs-overlay": "emacs-overlay",
+        "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "system-source": "system-source"
       }
     },
     "system-source": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "narHash": "sha256-NQoorU5bl5qQgVFqUoioauozhWCrro75y+SyWXxTWHI=",
-        "path": "/nix/store/qkx0nbr8l5wq498ssr2jww8ppvrqhdld-source",
+        "narHash": "sha256-morExQOymD6X9XOEkB7naQF666P+N/cocKgDDStvKto=",
+        "path": "/nix/store/36d0vzdqlaac0m0cm9jxw0y9yibbz1jd-source",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/qkx0nbr8l5wq498ssr2jww8ppvrqhdld-source",
+        "path": "/nix/store/36d0vzdqlaac0m0cm9jxw0y9yibbz1jd-source",
         "type": "path"
       }
     }
