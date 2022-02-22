@@ -83,14 +83,6 @@ The main configuration for the root system. It's a function which takes in an at
 
     <<main-configuration-inner>>
 
-
-    # Enable CUPS to print documents.
-    # services.printing.enable = true;
-
-    # Enable sound.
-
-    # Define a user account. Don't forget to set a password with ‘passwd’.
-
     # This value determines the NixOS release from which the default
     # settings for stateful data, like file locations and database versions
     # on your system were taken. It‘s perfectly fine and recommended to leave
@@ -203,7 +195,7 @@ Use passwd to set the account password the first time. I'll maybe turn off mutab
 #+end_src
 **** Packages
 This is extra stuff I want available in the system. I override firefox with =passff-host= so I can use
-the pass password manager with it. I use python10 as the default interpreter on the system, with a few packages
+the pass password manager with it. I use python 3.10 as the default interpreter on the system, with a few packages
 I tend to use a lot.
 I use latex for writing things and making plots look nice, so it's useful to have it installed globally.
 #+begin_src nix
@@ -232,7 +224,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
     ];
   programs.steam.enable = true;
   programs.sway-complete.enable = true;
-  
+  services.printing.enable = true;
 #+end_src
 
 *** System Modules
@@ -240,71 +232,103 @@ These are my modules for configuring the system that are imported by the main co
 A module is just a function which takes in a configuration, and some packages and returns a configuration.
 The configuration is an attribute set of options, and things to do when those options are set.
 
-$$a=b$$
-
 A =default.nix= file, so I don't need to name all the modules in the main config file.
 #+begin_src nix :tangle "modules/default.nix"
   { ... }: { imports = [ ./sway-complete.nix ]; }
 #+end_src
 
 **** Sway system configuration
-#+begin_src nix :tangle "modules/sway-complete.nix"
+#+begin_src nix :tangle "modules/sway-complete.nix" :noweb yes
   { config, lib, pkgs, ... }:
   with lib;
   let cfg = config.programs.sway-complete;
   in {
-    options.programs.sway-complete = {
-      enable = mkEnableOption "Complete Installation of Sway";
-    };
+    <<sway-system-configuration-options>>
     config = mkIf cfg.enable {
-      programs.sway = {
-        enable = true;
-        wrapperFeatures.gtk = true;
-      };
-
-      environment.loginShellInit = ''
-        if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
-          exec sway
-        fi
-      '';
-
-      systemd.user.services.swayidle = {
-        description = "Idle Manager for Wayland";
-        documentation = [ "man:swayidle(1)" ];
-        wantedBy = [ "sway-session.target" ];
-        partOf = [ "graphical-session.target" ];
-        path = [ pkgs.bash ];
-        serviceConfig = {
-          ExecStart = ''
-            ${pkgs.swayidle}/bin/swayidle -w -d \
-                   timeout 300 '${pkgs.sway}/bin/swaymsg "output * dpms off"' \
-                   resume '${pkgs.sway}/bin/swaymsg "output * dpms on"'
-                 '';
-        };
-      };
-
-      environment.systemPackages = with pkgs; [
-        grim
-        slurp
-        pavucontrol
-        swaylock
-        swayidle
-        wl-clipboard
-        mako
-        wofi
-        gtk-engine-murrine
-        gtk_engines
-        gsettings-desktop-schemas
-        lxappearance
-        brightnessctl
-        font-awesome
-        networkmanagerapplet
-      ];
+      <<sway-system-configuration-config>>
     };
   }
-  
+
 #+end_src
 
+****** Options
+:PROPERTIES:
+:header-args: :noweb-ref sway-system-configuration-options
+:END:
+
+I'll only define one option, just to enable this module.
+#+begin_src nix
+  options.programs.sway-complete = {
+    enable = mkEnableOption "Complete Installation of Sway";
+  };
+#+end_src
+
+****** Config
+:PROPERTIES:
+:header-args: :noweb-ref sway-system-configuration-config
+:END:
+If this module has been enabled (=programs.sway-complete.enable = true=), then define this stuff.
+
+We want to use sway (🤤)
+
+#+begin_src nix
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
+#+end_src
+
+And initialise it on login
+
+#+begin_src nix
+  environment.loginShellInit = ''
+          if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
+            exec sway
+          fi
+        '';
+#+end_src
+
+Create a service for swayidle, to turn off the screen on idling.
+
+#+begin_src nix
+  systemd.user.services.swayidle = {
+    description = "Idle Manager for Wayland";
+    documentation = [ "man:swayidle(1)" ];
+    wantedBy = [ "sway-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    path = [ pkgs.bash ];
+    serviceConfig = {
+      ExecStart = ''
+              ${pkgs.swayidle}/bin/swayidle -w -d \
+                     timeout 300 '${pkgs.sway}/bin/swaymsg "output * dpms off"' \
+                     resume '${pkgs.sway}/bin/swaymsg "output * dpms on"'
+                   '';
+    };
+  };
+#+end_src
+
+And we'll need all these extra packages.
+
+#+begin_src nix
+
+  environment.systemPackages = with pkgs; [
+    grim
+    slurp
+    pavucontrol
+    swaylock
+    swayidle
+    wl-clipboard
+    mako
+    wofi
+    gtk-engine-murrine
+    gtk_engines
+    gsettings-desktop-schemas
+    lxappearance
+    brightnessctl
+    font-awesome
+    networkmanagerapplet
+  ];
+#+end_src
 
 ** Home Configuration
 #+begin_src nix :tangle "home-manager.nix"
