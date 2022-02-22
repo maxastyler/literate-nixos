@@ -394,6 +394,9 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
       config = ./emacs.el;
       package = pkgs.emacsPgtkGcc;
       alwaysEnsure = true;
+      extraEmacsPackages = epkgs: [
+        epkgs.use-package
+      ];
     };
   };
 
@@ -586,13 +589,8 @@ Turn off stuff we don't want...
   (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 #+end_src
 
-Let straight use use-package
 #+begin_src emacs-lisp
-  (setq straight-use-package-by-default t
-        ;; straight-vc-git-default-protocol 'ssh
-        )
-  (straight-use-package 'use-package)
-
+  (setq use-package-always-ensure t)
 #+end_src
 
 Use vterm
