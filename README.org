@@ -390,8 +390,11 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
 #+begin_src nix
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsGcc;
-    extraPackages = epkgs: [ epkgs.nix-mode epkgs.magit epkgs.vterm ];
+    package = pkgs.emacsWithPackagesFromUsePackage {
+      config = ./emacs.el;
+      package = pkgs.emacsPgtkGcc;
+      alwaysEnsure = true;
+    };
   };
 
   services.emacs = {
@@ -568,3 +571,32 @@ The config schema can be found [[https://github.com/Alexays/Waybar/wiki/Configur
   
 #+end_src
 
+** Emacs Configuration
+:PROPERTIES:
+:header-args: :tangle "emacs.el" :results silent
+:END:
+
+This is the emacs configuration.
+
+Turn off stuff we don't want...
+
+#+begin_src emacs-lisp
+  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+#+end_src
+
+Let straight use use-package
+#+begin_src emacs-lisp
+  (setq straight-use-package-by-default t
+        ;; straight-vc-git-default-protocol 'ssh
+        )
+  (straight-use-package 'use-package)
+
+#+end_src
+
+Use vterm
+
+#+begin_src emacs-lisp
+  (use-package vterm)
+#+end_src
