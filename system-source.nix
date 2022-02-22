@@ -16,6 +16,6 @@ stdenv.mkDerivation rec {
       '';
   installPhase = ''
     mkdir -p $out/src
-    ${rsync}/bin/rsync --exclude=README.org --exclude=install-flake --exclude=flake.nix --exclude=system-source.nix ./* $out/src/
+    ${rsync}/bin/rsync --exclude=README.org --exclude=install-flake --exclude=flake.nix --exclude=flake.lock --exclude=system-source.nix ./* $out/src/
   '';
 }
