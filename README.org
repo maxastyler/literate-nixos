@@ -415,6 +415,8 @@ Git settings. Self explanatory...
 **** Direnv
 Direnv is a useful tool which can automatically switch environment when you change directory.
 It's super useful with nix.
+The =nix-direnv= submodule replaces the usual =use_nix= function with one which caches stuff, so it's faster.
+But I'm using flakes anyway (=use_flake=), so this doesn't really matter.
 #+begin_src nix
   programs.direnv = {
     enable = true;
