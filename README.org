@@ -390,15 +390,70 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
 #+begin_src nix
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsWithPackagesFromUsePackage {
-      config = ./emacs.el;
-      package = pkgs.emacsPgtkGcc;
-      alwaysEnsure = true;
-      extraEmacsPackages = epkgs: [
-        epkgs.use-package
-      ];
-    };
+    # package = pkgs.emacsWithPackagesFromUsePackage {
+    #   config = ./emacs.el;
+    #   package = pkgs.emacsPgtkGcc;
+    #   alwaysEnsure = true;
+    #   extraEmacsPackages = epkgs: [
+    #     epkgs.use-package
+    #   ];
+    # };
+    package = pkgs.emacsPgtkGcc;
+    extraPackages = (epkgs: with epkgs; [
+      direnv
+      use-package
+      helm
+      nix-mode
+      org
+      magit
+      ripgrep
+      python
+      projectile
+      projectile-ripgrep
+      helm-projectile
+      doom-modeline
+      yaml-mode
+      nov
+      typescript-mode
+      vterm
+      auctex
+      yasnippet-snippets
+      yasnippet
+      which-key
+      undo-tree
+      treemacs
+      treemacs-projectile
+      treemacs-magit
+      all-the-icons
+      kaolin-themes
+      markdown-mode
+      rg
+      rustic
+      racket-mode
+      pdf-tools
+      org-roam
+      cdlatex
+      lsp-pyright
+      blacken
+      lsp-mode
+      lsp-ui
+      julia-mode
+      julia-repl
+      lsp-julia
+      glsl-mode
+      flycheck
+      elixir-mode
+      mix
+      edit-indirect
+      direnv
+      dap-mode
+      company
+      clojure-mode
+      cider
+    ]);
   };
+
+  home.file.".emacs.d/init.el".source = ./emacs.el;
 
   services.emacs = {
     enable = true;
@@ -581,7 +636,7 @@ The config schema can be found [[https://github.com/Alexays/Waybar/wiki/Configur
 
 This is the emacs configuration.
 
-Turn off stuff we don't want...
+Turn off stuff the menu bars...
 
 #+begin_src emacs-lisp
   (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
@@ -589,12 +644,462 @@ Turn off stuff we don't want...
   (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 #+end_src
 
+And ensure the =use-package= function always installs stuff.
 #+begin_src emacs-lisp
   (setq use-package-always-ensure t)
 #+end_src
+*** Set some default variables
+#+BEGIN_SRC emacs-lisp :results silent
+  (setq-default
+   confirm-kill-emacs 'yes-or-no-p ;; confirmation when killing emacs
+   indent-tabs-mode nil ;; don't use tabs to indent
+   select-enable-clipboard t ;; use the system's clipboard
+   gc-cons-threshold 3200000
+   doc-view-continuous t ;; scroll over pages in doc mode
+   custom-file (expand-file-name "custom.el" user-emacs-directory) ;; use this file as the custom file
+   python-shell-interpreter "python3" ;; use python3 as the default python shell
+   dired-listing-switches "-alh" ;; give human readable sizes in dired listings
+   ring-bell-function #'ignore ;; don't ring a bell, just ignore it
+   tab-width 4) ;; tab width to 4
+#+END_SRC
+*** Backup settings
+#+BEGIN_SRC emacs-lisp :results silent
+  (setq
+   backup-by-copying t      ; don't clobber symlinks
+   backup-directory-alist
+   '(("." . "~/.emacs.d/file_backups/"))    ; don't litter my fs tree
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)       ; use versioned backups
+#+END_SRC
 
-Use vterm
+*** yes-or-no to y-or-n
+Stop asking for me to type in the full "yes" or "no"
+when a "y" or "n" would do...
+#+BEGIN_SRC emacs-lisp :results silent
+(fset 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+*** Turn off cursor blinking
+#+BEGIN_SRC emacs-lisp :results silent
+(blink-cursor-mode 0)
+#+END_SRC
+*** Don't let C-z suspend
+#+BEGIN_SRC emacs-lisp :results silent
+  (global-unset-key (kbd "C-z"))
+  (global-unset-key (kbd "C-x C-z"))
+#+END_SRC
+*** Scroll the compilation window
+We want the compilation window to scroll to the bottom
+#+BEGIN_SRC emacs-lisp :results silent
+  (setq compilation-scroll-output 1)
+#+END_SRC
+*** Parentheses stuff
+*** Org Mode
+
+Org mode. It's what this file's written with.
 
 #+begin_src emacs-lisp
+  (use-package org
+    :init
+    (defun org-babel-execute:yaml (body params) body) ;; so I can edit yaml files
+    (require 'ox-md)
+    ;; function to use to export org blocks with a language
+    (defun org-mymd-example-block (example-block _content info)
+      "Transcode element EXAMPLE-BLOCK as ```lang ...```."
+      (format "```%s\n%s\n```"
+	      (org-element-property :language example-block)
+	      (org-remove-indentation
+	       (org-export-format-code-default example-block info))))
+    (advice-add 'org-md-example-block :override #'org-mymd-example-block)
+    :config
+    (setq org-return-follows-link t
+	  org-directory "~/git/notes"
+	  org-default-notes-file (concat org-directory "/notes.org")
+	  org-thoughts-file (concat org-directory "/thoughts.org")
+	  org-agenda-files (list org-directory)
+	  org-todo-keywords
+	  '((sequence "TODO" "SOMEDAY" "|" "DONE" "CANCELLED")))
+    ;; set up my keymaps
+    (global-set-key (kbd "C-c l") 'org-store-link)
+    (global-set-key (kbd "C-c a") 'org-agenda)
+    (global-set-key (kbd "C-c c") 'org-capture)
+    ;; set up my capture templates
+    (setq org-capture-templates
+	  '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
+	     "* TODO %?\n  %i\n  %a")
+	    ("j" "Journal" entry (file+olp+datetree org-default-notes-file)
+	     "* %?\nEntered on %U\n  %i\n  %a")
+	    ("c" "Thought" table-line (file+headline org-thoughts-file "Thoughts Table")
+	     "|%U |%? | | | | | | | |" :table-line-pos "II-1")
+	    ("a" "Achievement" entry (file+olp+datetree org-thoughts-file "Achievements")
+	     "* %?\nEntered on %U\n  %i")))
+    (org-babel-do-load-languages ;; load the languages for org-babel
+     'org-babel-load-languages
+     '((python . t)
+       (emacs-lisp . t)
+       (C . t)
+       (latex . t)
+       (shell . t)
+       (clojure . t))))
+#+end_src
+
+*** cider
+   Add nicer repl interaction to clojure mode
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package cider
+    :defer t
+    :config
+    (add-hook 'clojure-mode-hook #'cider-mode))
+#+END_SRC
+*** clojure-mode
+   Add a clojure mode
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package clojure-mode)
+#+END_SRC
+*** Company
+   Auto completion.
+#+begin_src emacs-lisp :results silent
+  (use-package company
+    :config
+    (add-hook 'after-init-hook #'global-company-mode)
+    (setq company-minimum-prefix-length 2) ;; start completing after 2 characters
+    (setq company-idle-delay 0.2))
+#+end_src
+*** DAP Mode
+#+begin_src emacs-lisp :results silent
+  (use-package dap-mode
+    :defer t
+    :after lsp-mode
+    :config
+    (dap-auto-configure-mode)
+    (require 'dap-cpptools))
+#+end_src
+
+*** Direnv mode
+#+begin_src emacs-lisp :results silent
+  (use-package direnv
+    :config
+    (direnv-mode t))
+#+end_src
+
+*** Doom modeline
+#+begin_src emacs-lisp :results silent
+  (use-package doom-modeline
+    :hook (after-init . doom-modeline-mode))
+#+end_src
+
+*** Edit indirect
+Package that lets you edit code blocks in md files with their respective modes
+#+begin_src emacs-lisp :results silent
+  (use-package edit-indirect)
+#+end_src
+
+*** Elixir mode
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package elixir-mode)
+  (use-package mix
+    :config
+    (defun mix-update-path-to-bin ()
+      (interactive)
+      (customize-set-variable 'mix-path-to-bin
+                              (or (executable-find "mix")
+                                  "/usr/bin/mix")))
+    :hook
+    ((elixir-mode . mix-minor-mode)))
+#+END_SRC
+*** Flycheck
+Improved diagnostics for projects n stuff
+#+begin_src emacs-lisp :results silent
+  (use-package flycheck
+    :init (global-flycheck-mode))
+#+end_src
+*** GLSL mode
+#+begin_src emacs-lisp :results silent
+  (use-package glsl-mode)
+#+end_src
+
+*** Helm
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package helm
+    :init
+    (global-set-key (kbd "M-x") #'helm-M-x)
+    (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+    (global-set-key (kbd "C-x C-f") #'helm-find-files)
+    (setq helm-default-display-buffer-functions '(display-buffer-in-side-window))
+    (setq helm-display-buffer-default-height 15)
+    :config
+    (helm-mode 1))
+  (use-package helm-rg)
+#+END_SRC
+Helm + YASnippet
+#+begin_src emacs-lisp :results silent
+  (use-package helm-c-yasnippet
+    :after (helm yasnippet)
+    :config
+    (setq helm-yas-space-match-any-greedy t)
+    (global-set-key (kbd "C-c y") 'helm-yas-complete))
+#+end_src
+
+*** Julia
+#+begin_src emacs-lisp :results silent
+  (use-package julia-mode)
+  (use-package julia-repl
+    :hook ((julia-mode . julia-repl-mode)))
+  (use-package lsp-julia
+    :config
+      (setq lsp-julia-default-environment "~/.julia/environments/v1.5"))
+
+#+end_src
+
+*** Kotlin mode
+#+begin_src emacs-lisp :results silent
+  (use-package kotlin-mode
+    :defer t)
+#+end_src
+*** lsp-mode
+#+begin_src emacs-lisp :results silent
+  (use-package lsp-mode
+    :init
+    ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+    (setq lsp-keymap-prefix "C-c l")
+    :config
+    (setq lsp-clients-kotlin-server-executable "~/git/kotlin-language-server/server/build/install/server/bin/kotlin-language-server")
+    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+           ;; (XXX-mode . lsp)
+           (elixir-mode . lsp)
+           (nix-mode . lsp)
+           (kotlin-mode . lsp)
+           (typescript-mode . lsp)
+           (js-mode . lsp)
+           (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp)
+  (use-package lsp-ui
+    :bind (:map lsp-ui-mode-map
+                ("C-c i" . lsp-ui-imenu)))
+#+end_src
+
+**** Python
+#+begin_src emacs-lisp :results silent
+  (use-package lsp-pyright
+    :hook
+    (python-mode . (lambda ()
+                     (require 'lsp-pyright)
+                     (lsp))))  ; or lsp-deferred
+#+end_src
+
+Use blacken for python formatting
+#+begin_src emacs-lisp :results silent
+  (use-package blacken
+    :init
+    (setq-default blacken-fast-unsafe t)
+    (setq-default blacken-line-length 80))
+#+end_src
+
+**** Nix
+#+begin_src emacs-lisp :results silent
+  (add-to-list 'lsp-language-id-configuration '(nix-mode . "nix"))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection '("rnix-lsp"))
+                    :major-modes '(nix-mode)
+                    :server-id 'nix))
+#+end_src
+*** Magit
+#+begin_src emacs-lisp :results silent
+  (use-package magit)
+#+end_src
+*** Nix mode
+#+begin_src emacs-lisp :results silent
+  (use-package nix-mode
+    :mode "\\.nix\\'"
+    :defer t)
+#+end_src
+*** Org mode stuff
+#+begin_src emacs-lisp :results silent
+  (use-package cdlatex
+    :defer t
+    :init
+    (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+    (add-hook 'LaTeX-mode-hook 'turn-on-cdlatex))
+  (use-package org-bullets
+    :hook (org-mode . org-bullets-mode))
+#+end_src
+**** Org Roam
+#+begin_src emacs-lisp :results silent
+  (use-package org-roam
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory (file-truename "~/git/roam/"))
+    (org-roam-completion-everywhere t)
+    :bind
+    (("C-c r i" . #'org-roam-node-insert)
+     ("C-c r f" . #'org-roam-node-find)
+     ("C-c r r" . #'org-roam-buffer-toggle))
+    :config
+    (org-roam-setup))
+#+end_src
+
+*** pdf-tools
+A better pdf viewer than doc-view
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package pdf-tools
+    :config
+    (pdf-tools-install))
+#+END_SRC
+*** Projectile
+#+begin_src emacs-lisp :results silent
+  (use-package projectile
+    :init
+    (projectile-mode +1)
+    :bind (:map projectile-mode-map
+                ("C-c p" . projectile-command-map)))
+  (use-package helm-projectile
+    :after (helm projectile)
+    :config
+    (helm-projectile-on))
+  (use-package projectile-ripgrep
+    :after (projectile))
+#+end_src
+*** Python
+#+begin_src emacs-lisp :results silent
+  (use-package python
+    :config
+    (setq python-indent-guess-indent-offset-verbose nil
+          org-babel-python-command (python-shell-calculate-command)))
+  
+  (use-package yapfify
+    :defer t
+    :hook (python-mode . yapf-mode))
+  
+#+end_src
+*** Racket
+#+begin_src emacs-lisp :results silent
+  (use-package racket-mode
+    :defer t
+    :hook (racket-mode . racket-xp-mode)
+    :bind (:map racket-xp-mode-map
+                ("C-c C-d" . racket-xp-describe)))
+
+#+end_src
+
+*** Rustic
+#+begin_src emacs-lisp :results silent
+  (use-package rustic)
+#+end_src
+
+*** Ripgrep
+#+begin_src emacs-lisp :results silent
+  (use-package rg
+    :config
+    (rg-enable-default-bindings))
+#+end_src
+
+*** Markdown mode
+#+begin_src emacs-lisp :results silent
+  (use-package markdown-mode
+    :mode ("\\.mdx\\'" . markdown-mode))
+#+end_src
+
+*** Theming
+Trying out the kaolin light theme
+#+begin_src emacs-lisp :results silent
+  (use-package all-the-icons)
+  (use-package kaolin-themes
+    :config
+    (load-theme 'kaolin-breeze t))
+    ;; (kaolin-treemacs-theme))
+#+end_src
+*** Treemacs
+#+begin_src emacs-lisp :results silent
+  (use-package treemacs
+    :bind
+    (:map global-map
+          ("M-0"       . treemacs-select-window)
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag)))
+  (use-package treemacs-projectile
+    :after (treemacs projectile))
+  (use-package treemacs-icons-dired
+    :after (treemacs dired)
+    :config (treemacs-icons-dired-mode))
+  (use-package treemacs-magit
+    :after (treemacs magit))
+#+end_src
+
+*** Undo tree
+This package turns the undo tangle emacs usually has into an undo tree
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package undo-tree
+    :config
+    (global-undo-tree-mode) ;; start undo-tree
+    (setq undo-tree-visualizer-diff t))
+#+END_SRC
+*** Which-key
+#+begin_src emacs-lisp :results silent
+  (use-package which-key
+    :config
+    (which-key-mode t))
+#+end_src
+*** Yasnippet
+#+BEGIN_SRC emacs-lisp :results silent
+  (use-package yasnippet-snippets)
+  (use-package yasnippet
+    :after yasnippet-snippets
+    :config
+    (yas-global-mode t))
+#+END_SRC
+*** Latex
+#+begin_src emacs-lisp :results silent
+  (use-package tex
+    :straight auctex ;; install the package if it's not installed already
+    :mode ("\\.tex\\'" . TeX-latex-mode)
+    :config
+    (setq TeX-auto-save t)
+    (setq TeX-parse-self t)
+    (setq TeX-PDF-mode t)
+    (setq-default TeX-master nil)
+    (setq TeX-source-correlate-start-server 'synctex)
+    (setq TeX-view-program-selection '(((output-dvi has-no-display-manager)
+                                        "dvi2tty")
+                                       ((output-dvi style-pstricks)
+                                        "dvips and gv")
+                                       (output-dvi "xdvi")
+                                       (output-pdf "PDF Tools")
+                                       (output-html "xdg-open")))
+    :init
+    (add-hook 'LaTeX-mode-hook #'my-LaTeX-mode-hooks)
+    (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+    (add-to-list 'safe-local-variable-values
+                 '(TeX-command-extra-options . "-shell-escape"))
+    (defun my-LaTeX-mode-hooks ()
+      (TeX-source-correlate-mode t)
+      (LaTeX-math-mode t)
+      (add-hook 'after-save-hook (lambda () (TeX-command-run-all nil)) nil t) ;; save after compilation
+      ))
+#+end_src
+*** Vterm
+#+begin_src emacs-lisp :results silent
   (use-package vterm)
 #+end_src
+*** Typescript mode
+#+begin_src emacs-lisp :results silent
+  (use-package typescript-mode
+    :mode "\\.tsx\\'"
+    :defer t)
+#+end_src
+*** Nov.el - epub reading
+Mode for reading epubs in emacs
+#+begin_src emacs-lisp :results silent
+  (use-package nov
+    :mode ("\\.epub\\'" . nov-mode)
+    :defer t)
+#+end_src
+*** Yaml mode
+#+begin_src emacs-lisp :results silent
+  (use-package yaml-mode)
+#+end_src
+
