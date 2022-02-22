@@ -331,67 +331,143 @@ And we'll need all these extra packages.
 #+end_src
 
 ** Home Configuration
-#+begin_src nix :tangle "home-manager.nix"
+#+begin_src nix :tangle "home-manager.nix" :noweb yes
   { pkgs, lib, ... }: {
+
     imports = [ ./home-manager-modules ];
-    home.username = "max";
-    home.homeDirectory = "/home/max";
-    home.packages = with pkgs; [ htop ];
-    home.stateVersion = "22.05";
-    programs.home-manager.enable = true;
-    programs.emacs = {
+
+    <<home-configuration-inner>>
+  }
+
+#+end_src
+
+*** Home Configuration Settings
+:PROPERTIES:
+:header-args: :noweb-ref home-configuration-inner
+:END:
+
+**** Housekeeping
+Letting the computer know who's home.
+#+begin_src nix
+  home.username = "max";
+  home.homeDirectory = "/home/max";
+  home.stateVersion = "22.05";
+  programs.home-manager.enable = true;
+#+end_src
+
+**** Bash 
+I use bash as my shell. Would use fish, but it doesn't work as well with nixos -
+or at least it didn't last time I tried.
+I'll define two functions which are used in vterm to let emacs track which folder it's in.
+#+begin_src nix
+  programs.bash = {
+    enable = true;
+    bashrcExtra = ''
+          vterm_printf(){
+              if [ -n "$TMUX" ] && ([ "''${TERM%%-*}" = "tmux" ] || [ "''${TERM%%-*}" = "screen" ] ); then
+                  # Tell tmux to pass the escape sequences through
+                  printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+              elif [ "''${TERM%%-*}" = "screen" ]; then
+                  # GNU screen (screen, screen-256color, screen-256color-bce)
+                  printf "\eP\e]%s\007\e\\" "$1"
+              else
+                  printf "\e]%s\e\\" "$1"
+              fi
+          }
+          vterm_prompt_end(){
+              vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+          }
+          PS1=$PS1'\[$(vterm_prompt_end)\]'
+        '';
+  };
+#+end_src
+
+**** Emacs
+Emacs > Vim >>>>>>>> vscode
+
+I want to use the emacsGcc package from the emacs overlay, which is emacs with byte-compilation. Speedy.
+I also enable the emacs service, so I can use emacsclient instead of waiting years for emacs to start.
+#+begin_src nix
+  programs.emacs = {
+    enable = true;
+    package = pkgs.emacsGcc;
+    extraPackages = epkgs: [ epkgs.nix-mode epkgs.magit epkgs.vterm ];
+  };
+
+  services.emacs = {
+    enable = true;
+    client.enable = true;
+    socketActivation.enable = true;
+  };
+#+end_src
+
+**** Git
+Git settings. Self explanatory...
+#+begin_src nix
+  programs.git = {
+    enable = true;
+    userName = "Max Tyler";
+    userEmail = "maxastyler@gmail.com";
+    extraConfig = { init.defaultBranch = "master"; };
+  };
+#+end_src
+
+**** Direnv
+Direnv is a useful tool which can automatically switch environment when you change directory.
+It's super useful with nix.
+#+begin_src nix
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+#+end_src
+
+**** GPG-agent
+GPG agent manages my gpg keys. I enable ssh support so that it can work as an ssh authentication key too.
+Default cache ttl is the time (in seconds) before it asks for the password again.
+#+begin_src nix
+  services.gpg-agent = {
+    enable = true;
+    defaultCacheTtl = 7200;
+    enableSshSupport = true;
+  };
+#+end_src
+
+**** Extra packages
+Just some extra packages n stuff that are pretty self explanatory. Alacritty is a fast terminal written in rust.
+Feh is a simple image viewer.
+#+begin_src nix
+  home.packages = with pkgs; [ htop ];
+  programs.alacritty.enable = true;
+  programs.feh.enable = true;
+#+end_src
+
+
+*** Home Modules
+#+begin_src nix :tangle "home-manager-modules/default.nix"
+  { ... }: { imports = [ ./sway-configuration.nix ]; }
+
+#+end_src
+
+**** Sway home configuration
+
+My personal configuration for sway. I use waybar as the bar, which i define in a separate file.
+I set the input options to =gb= by default, and use caps lock as ctrl except on my HHKB, which is sadly in US layout.
+
+Then I set the keybindings, which are just an attribute set of string to string.
+
+#+begin_src nix :tangle "home-manager-modules/sway-configuration.nix"
+  { config, lib, pkgs, ... }@attrs:
+  let modifier = config.wayland.windowManager.sway.config.modifier;
+  in {
+    programs.waybar = {
       enable = true;
-      package = pkgs.emacsGcc;
-      extraPackages = epkgs: [ epkgs.nix-mode epkgs.magit epkgs.vterm ];
-    };
-
-    programs.git = {
-      enable = true;
-      userName = "Max Tyler";
-      userEmail = "maxastyler@gmail.com";
-      extraConfig = { init.defaultBranch = "master"; };
-    };
-
-    programs.alacritty = { enable = true; };
-
-    programs.feh.enable = true;
-
-    programs.bash = {
-      enable = true;
-      bashrcExtra = ''
-        vterm_printf(){
-            if [ -n "$TMUX" ] && ([ "''${TERM%%-*}" = "tmux" ] || [ "''${TERM%%-*}" = "screen" ] ); then
-                # Tell tmux to pass the escape sequences through
-                printf "\ePtmux;\e\e]%s\007\e\\" "$1"
-            elif [ "''${TERM%%-*}" = "screen" ]; then
-                # GNU screen (screen, screen-256color, screen-256color-bce)
-                printf "\eP\e]%s\007\e\\" "$1"
-            else
-                printf "\e]%s\e\\" "$1"
-            fi
-        }
-        vterm_prompt_end(){
-            vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
-        }
-        PS1=$PS1'\[$(vterm_prompt_end)\]'
-      '';
-    };
-    programs.direnv.enable = true;
-    programs.direnv.nix-direnv.enable = true;
-
-    services.gpg-agent = {
-      enable = true;
-      defaultCacheTtl = 7200;
-      enableSshSupport = true;
-    };
-
-    services.emacs = {
-      enable = true;
-      client.enable = true;
-      socketActivation.enable = true;
+      systemd.enable = true;
+      settings = import ./waybar-config.nix attrs;
     };
 
     wayland.windowManager.sway = {
+
       enable = true;
       wrapperFeatures.gtk = true;
       config = {
@@ -405,57 +481,36 @@ And we'll need all these extra packages.
           "2131:256:Topre_Corporation_HHKB_Professional" = { xkb_layout = "us"; };
         };
       };
-    };
 
-  }
+      config.keybindings = lib.mkOptionDefault {
+        # open terminal
+        "${modifier}+Return" = "exec ${pkgs.alacritty}/bin/alacritty";
+        # open emacs
+        "${modifier}+Shift+Return" = "exec 'emacsclient -c'";
+        # Brightness
+        "XF86MonBrightnessDown" =
+          "exec '${pkgs.brightnessctl}/bin/brightnessctl set 2%-'";
+        "XF86MonBrightnessUp" =
+          "exec '${pkgs.brightnessctl}/bin/brightnessctl set +2%'";
 
-#+end_src
+        # lock the screen
+        "${modifier}+End" = "exec '${pkgs.swaylock}/bin/swaylock --ring-color black --line-color 000000 --inside-color 000000 --line-color 000000 --ring-color 000000 --key-hl-color ffffff'";
+        # Volume
+        "XF86AudioRaiseVolume" = "exec 'pactl set-sink-volume @DEFAULT_SINK@ +1%'";
+        "XF86AudioLowerVolume" = "exec 'pactl set-sink-volume @DEFAULT_SINK@ -1%'";
+        "XF86AudioMute" = "exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'";
+        "XF86AudioMicMute" = "exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'";
 
-*** Home Modules
-#+begin_src nix :tangle "home-manager-modules/default.nix"
-  { ... }: { imports = [ ./sway-configuration.nix ]; }
-
-#+end_src
-
-**** Sway home configuration
-#+begin_src nix :tangle "home-manager-modules/sway-configuration.nix"
-  { config, lib, pkgs, ... }@attrs:
-  let modifier = config.wayland.windowManager.sway.config.modifier;
-  in {
-    programs.waybar = {
-      enable = true;
-      systemd.enable = true;
-      settings = import ./waybar-config.nix attrs;
-    };
-
-    wayland.windowManager.sway.config.keybindings = lib.mkOptionDefault {
-
-      # open terminal
-      "${modifier}+Return" = "exec ${pkgs.alacritty}/bin/alacritty";
-      # open emacs
-      "${modifier}+Shift+Return" = "exec 'emacsclient -c'";
-      # Brightness
-      "XF86MonBrightnessDown" =
-        "exec '${pkgs.brightnessctl}/bin/brightnessctl set 2%-'";
-      "XF86MonBrightnessUp" =
-        "exec '${pkgs.brightnessctl}/bin/brightnessctl set +2%'";
-
-      # lock the screen
-      "${modifier}+End" = "exec '${pkgs.swaylock}/bin/swaylock --ring-color black --line-color 000000 --inside-color 000000 --line-color 000000 --ring-color 000000 --key-hl-color ffffff'";
-      # Volume
-      "XF86AudioRaiseVolume" = "exec 'pactl set-sink-volume @DEFAULT_SINK@ +1%'";
-      "XF86AudioLowerVolume" = "exec 'pactl set-sink-volume @DEFAULT_SINK@ -1%'";
-      "XF86AudioMute" = "exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'";
-      "XF86AudioMicMute" = "exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'";
-
-      # screenshots
-      "Print" = "exec ${pkgs.grim}/bin/grim";
-      "XF86SelectiveScreenshot" = "exec '${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\"'";
-    };
+        # screenshots
+        "Print" = "exec ${pkgs.grim}/bin/grim";
+        "XF86SelectiveScreenshot" = "exec '${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\"'";
+      };};
   }
 #+end_src
 
 **** Waybar configuration
+The waybar configuration is a 1 to 1 translation of a waybar json config into nix attribute sets.
+The config schema can be found [[https://github.com/Alexays/Waybar/wiki/Configuration][here]].
 #+begin_src nix :tangle "home-manager-modules/waybar-config.nix"
   { config, ... }: {
     mainBar = {
