@@ -83,80 +83,13 @@ The main configuration for the root system. It's a function which takes in an at
 
     <<main-configuration-inner>>
 
-    # Use the systemd-boot EFI boot loader.
-    boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
-    boot.kernelPackages = pkgs.linuxPackages_latest;
-
-    boot.initrd.luks.devices = {
-      crypted = {
-        device = "/dev/disk/by-partuuid/7820a35d-c583-4656-a716-968f83ea55b0";
-        allowDiscards = true;
-        preLVM = true;
-      };
-    };
-
-    networking.hostName = "cheeky-monkey"; # Define your hostname.
-    networking.networkmanager.enable = true;
-    # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-    # Set your time zone.
-    time.timeZone = "Europe/London";
-
-    # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-    # Per-interface useDHCP will be mandatory in the future, so this generated config
-    # replicates the default behaviour.
-    networking.useDHCP = false;
-    networking.interfaces.enp2s0f0.useDHCP = true;
-    networking.interfaces.enp5s0.useDHCP = true;
-
-    # Configure network proxy if necessary
-    # networking.proxy.default = "http://user:password@proxy:port/";
-    # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-    # Select internationalisation properties.
-    i18n.defaultLocale = "en_GB.UTF-8";
-    console = {
-      font = "Lat2-Terminus16";
-      keyMap = "uk";
-    };
-
-    # Enable the X11 windowing system.
-    # services.xserver.enable = true;
-
-    # Configure keymap in X11
-    services.xserver.layout = "gb";
 
     # Enable CUPS to print documents.
     # services.printing.enable = true;
 
     # Enable sound.
-    sound.enable = true;
-    hardware.pulseaudio.enable = true;
-    hardware.bluetooth.enable = true;
-
-    # Enable touchpad support (enabled default in most desktopManager).
-    services.xserver.libinput.enable = true;
 
     # Define a user account. Don't forget to set a password with ‘passwd’.
-    users.users.max = {
-      isNormalUser = true;
-      extraGroups =
-        [ "wheel" "sudo" "networkmanager" "video" ];
-    };
-
-    # List packages installed in system profile. To search, run:
-    # $ nix search wget
-    environment.systemPackages = import ./system-packages.nix { inherit pkgs; };
-
-    programs.steam.enable = true;
-
-    # Enable the OpenSSH daemon.
-    services.openssh.enable = true;
-
-    programs.sway-complete.enable = true;
-
-    services.blueman.enable = true;
 
     # This value determines the NixOS release from which the default
     # settings for stateful data, like file locations and database versions
@@ -194,37 +127,122 @@ I'll add in the emacs overlay and allow unfree software.
     config.allowUnfree = true;
   };
 #+end_src
+**** Boot settings
+I want to use the latest kernel (got a new thinkpad laptop, and the wireless card needs the newest drivers).
 
-*** Packages
-#+begin_src nix :tangle "system-packages.nix"
-  { pkgs }:
-  with pkgs; [
-    (firefox.override { extraNativeMessagingHosts = [ passff-host ]; })
-    (python310.withPackages (ps: with ps; [ numpy scipy matplotlib pyrsistent ]))
-    black
-    cmake
-    gcc
-    git
-    gnome3.gnome-tweaks
-    gnumake
-    libtool
-    libvterm
-    mpv
-    nixfmt
-    pyright
-    pass
-    ripgrep
-    fd
-    rnix-lsp
-    texlive.combined.scheme-full
-    tmux
-    vim
-    wget
-  ]
+I've got full disk encryption, so I let nix know which partition it's on.
+#+begin_src nix
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  boot.initrd.luks.devices = {
+    crypted = {
+      device = "/dev/disk/by-partuuid/7820a35d-c583-4656-a716-968f83ea55b0";
+      allowDiscards = true;
+      preLVM = true;
+    };
+  };
+
+#+end_src
+**** Networking Settings
+I set the machine's hostname, and I tell it I want to use networkmanager.
+
+The comment about DHCP was generated there. Thanks nixos.
+
+I enable openssh so I can ssh into this machine if needed.
+#+begin_src nix
+  networking.hostName = "cheeky-monkey"; # Define your hostname.
+  networking.networkmanager.enable = true;
+
+  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+  # Per-interface useDHCP will be mandatory in the future, so this generated config
+  # replicates the default behaviour.
+  networking.useDHCP = false;
+  networking.interfaces.enp2s0f0.useDHCP = true;
+  networking.interfaces.enp5s0.useDHCP = true;
+
+  services.openssh.enable = true;
+#+end_src
+**** Localisation
+American defaults are NOT WHAT I WANT.
+#+begin_src nix
+  time.timeZone = "Europe/London";
+
+  i18n.defaultLocale = "en_GB.UTF-8";
+  console = {
+    font = "Lat2-Terminus16";
+    keyMap = "uk";
+  };
+
+  services.xserver.layout = "gb";
+#+end_src
+**** Sound
+I'll use bluetooth and pulseaudio
+#+begin_src nix
+  sound.enable = true;
+  hardware.pulseaudio.enable = true;
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+#+end_src
+**** Input
+Libinput for input stuff. It works with x and wayland.
+#+begin_src nix
+  services.xserver.libinput.enable = true;
+#+end_src
+**** Users
+Just little old me. I add in networkmanager group for user control of network stuff and
+video for some reason (can't remember why, but I need it...)
+Use passwd to set the account password the first time. I'll maybe turn off mutable users later...
+#+begin_src nix
+  users.users.max = {
+    isNormalUser = true;
+    extraGroups =
+      [ "wheel" "sudo" "networkmanager" "video" ];
+  };
+#+end_src
+**** Packages
+This is extra stuff I want available in the system. I override firefox with =passff-host= so I can use
+the pass password manager with it. I use python10 as the default interpreter on the system, with a few packages
+I tend to use a lot.
+I use latex for writing things and making plots look nice, so it's useful to have it installed globally.
+#+begin_src nix
+  environment.systemPackages =  with pkgs; [
+      (firefox.override { extraNativeMessagingHosts = [ passff-host ]; })
+      (python310.withPackages (ps: with ps; [ numpy scipy matplotlib pyrsistent ]))
+      black
+      cmake
+      gcc
+      git
+      gnome3.gnome-tweaks
+      gnumake
+      libtool
+      libvterm
+      mpv
+      nixfmt
+      pyright
+      pass
+      ripgrep
+      fd
+      rnix-lsp
+      texlive.combined.scheme-full
+      tmux
+      vim
+      wget
+    ];
+  programs.steam.enable = true;
+  programs.sway-complete.enable = true;
   
 #+end_src
 
 *** System Modules
+These are my modules for configuring the system that are imported by the main configuration file.
+A module is just a function which takes in a configuration, and some packages and returns a configuration.
+The configuration is an attribute set of options, and things to do when those options are set.
+
+$$a=b$$
+
+A =default.nix= file, so I don't need to name all the modules in the main config file.
 #+begin_src nix :tangle "modules/default.nix"
   { ... }: { imports = [ ./sway-complete.nix ]; }
 #+end_src
