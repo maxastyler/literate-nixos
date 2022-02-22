@@ -172,8 +172,277 @@ This function is called in the flake to build the system
 
 
 #+end_src
+*** Packages
+#+begin_src nix :tangle "system-packages.nix"
+  { pkgs }:
+  with pkgs; [
+    (firefox.override { extraNativeMessagingHosts = [ passff-host ]; })
+    (python310.withPackages (ps: with ps; [ numpy scipy matplotlib pyrsistent ]))
+    black
+    cmake
+    gcc
+    git
+    gnome3.gnome-tweaks
+    gnumake
+    libtool
+    libvterm
+    mpv
+    nixfmt
+    pyright
+    pass
+    ripgrep
+    fd
+    rnix-lsp
+    texlive.combined.scheme-full
+    tmux
+    vim
+    wget
+  ]
+  
+#+end_src
+
+*** System Modules
+#+begin_src nix :tangle "modules/default.nix"
+  { ... }: { imports = [ ./sway-complete.nix ]; }
+#+end_src
+
+**** Sway system configuration
+#+begin_src nix :tangle "modules/sway-complete.nix"
+  { config, lib, pkgs, ... }:
+  with lib;
+  let cfg = config.programs.sway-complete;
+  in {
+    options.programs.sway-complete = {
+      enable = mkEnableOption "Complete Installation of Sway";
+    };
+    config = mkIf cfg.enable {
+      programs.sway = {
+        enable = true;
+        wrapperFeatures.gtk = true;
+      };
+
+      environment.loginShellInit = ''
+        if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
+          exec sway
+        fi
+      '';
+
+      systemd.user.services.swayidle = {
+        description = "Idle Manager for Wayland";
+        documentation = [ "man:swayidle(1)" ];
+        wantedBy = [ "sway-session.target" ];
+        partOf = [ "graphical-session.target" ];
+        path = [ pkgs.bash ];
+        serviceConfig = {
+          ExecStart = ''
+            ${pkgs.swayidle}/bin/swayidle -w -d \
+                   timeout 300 '${pkgs.sway}/bin/swaymsg "output * dpms off"' \
+                   resume '${pkgs.sway}/bin/swaymsg "output * dpms on"'
+                 '';
+        };
+      };
+
+      environment.systemPackages = with pkgs; [
+        grim
+        slurp
+        pavucontrol
+        swaylock
+        swayidle
+        wl-clipboard
+        mako
+        wofi
+        gtk-engine-murrine
+        gtk_engines
+        gsettings-desktop-schemas
+        lxappearance
+        brightnessctl
+        font-awesome
+        networkmanagerapplet
+      ];
+    };
+  }
+  
+#+end_src
+
 
 ** Home Configuration
 #+begin_src nix :tangle "home-manager.nix"
-  {...}: {}
+  { pkgs, lib, ... }: {
+    imports = [ ./home-manager-modules ];
+    home.username = "max";
+    home.homeDirectory = "/home/max";
+    home.packages = with pkgs; [ htop ];
+    home.stateVersion = "22.05";
+    programs.home-manager.enable = true;
+    programs.emacs = {
+      enable = true;
+      package = pkgs.emacsGcc;
+      extraPackages = epkgs: [ epkgs.nix-mode epkgs.magit epkgs.vterm ];
+    };
+
+    programs.git = {
+      enable = true;
+      userName = "Max Tyler";
+      userEmail = "maxastyler@gmail.com";
+      extraConfig = { init.defaultBranch = "master"; };
+    };
+
+    programs.alacritty = { enable = true; };
+
+    programs.feh.enable = true;
+
+    programs.bash = {
+      enable = true;
+      bashrcExtra = ''
+        vterm_printf(){
+            if [ -n "$TMUX" ] && ([ "''${TERM%%-*}" = "tmux" ] || [ "''${TERM%%-*}" = "screen" ] ); then
+                # Tell tmux to pass the escape sequences through
+                printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+            elif [ "''${TERM%%-*}" = "screen" ]; then
+                # GNU screen (screen, screen-256color, screen-256color-bce)
+                printf "\eP\e]%s\007\e\\" "$1"
+            else
+                printf "\e]%s\e\\" "$1"
+            fi
+        }
+        vterm_prompt_end(){
+            vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+        }
+        PS1=$PS1'\[$(vterm_prompt_end)\]'
+      '';
+    };
+    programs.direnv.enable = true;
+    programs.direnv.nix-direnv.enable = true;
+
+    services.gpg-agent = {
+      enable = true;
+      defaultCacheTtl = 7200;
+      enableSshSupport = true;
+    };
+
+    services.emacs = {
+      enable = true;
+      client.enable = true;
+      socketActivation.enable = true;
+    };
+
+    wayland.windowManager.sway = {
+      enable = true;
+      wrapperFeatures.gtk = true;
+      config = {
+        bars = [ ];
+        modifier = "Mod4";
+        input = {
+          "*" = {
+            xkb_layout = "gb";
+            xkb_options = "ctrl:nocaps";
+          };
+          "2131:256:Topre_Corporation_HHKB_Professional" = { xkb_layout = "us"; };
+        };
+      };
+    };
+
+  }
+
 #+end_src
+
+*** Home Modules
+#+begin_src nix :tangle "home-manager-modules/default.nix"
+  { ... }: { imports = [ ./sway-configuration.nix ]; }
+
+#+end_src
+
+**** Sway home configuration
+#+begin_src nix :tangle "home-manager-modules/sway-configuration.nix"
+  { config, lib, pkgs, ... }@attrs:
+  let modifier = config.wayland.windowManager.sway.config.modifier;
+  in {
+    programs.waybar = {
+      enable = true;
+      systemd.enable = true;
+      settings = import ./waybar-config.nix attrs;
+    };
+
+    wayland.windowManager.sway.config.keybindings = lib.mkOptionDefault {
+
+      # open terminal
+      "${modifier}+Return" = "exec ${pkgs.alacritty}/bin/alacritty";
+      # open emacs
+      "${modifier}+Shift+Return" = "exec 'emacsclient -c'";
+      # Brightness
+      "XF86MonBrightnessDown" =
+        "exec '${pkgs.brightnessctl}/bin/brightnessctl set 2%-'";
+      "XF86MonBrightnessUp" =
+        "exec '${pkgs.brightnessctl}/bin/brightnessctl set +2%'";
+
+      # lock the screen
+      "${modifier}+End" = "exec '${pkgs.swaylock}/bin/swaylock --ring-color black --line-color 000000 --inside-color 000000 --line-color 000000 --ring-color 000000 --key-hl-color ffffff'";
+      # Volume
+      "XF86AudioRaiseVolume" = "exec 'pactl set-sink-volume @DEFAULT_SINK@ +1%'";
+      "XF86AudioLowerVolume" = "exec 'pactl set-sink-volume @DEFAULT_SINK@ -1%'";
+      "XF86AudioMute" = "exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'";
+      "XF86AudioMicMute" = "exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'";
+
+      # screenshots
+      "Print" = "exec ${pkgs.grim}/bin/grim";
+      "XF86SelectiveScreenshot" = "exec '${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\"'";
+    };
+  }
+#+end_src
+
+**** Waybar configuration
+#+begin_src nix :tangle "home-manager-modules/waybar-config.nix"
+  { config, ... }: {
+    mainBar = {
+      modules-left = [ "idle_inhibitor" "sway/window" ];
+      modules-center = [ "sway/workspaces" "sway/mode" ];
+      modules-right = [ "pulseaudio" "network" "battery" "clock" "tray" ];
+      "sway/workspaces" = {
+        disable-scroll = true;
+        all-outputs = true;
+      };
+      "network" = {
+        "format" = "{ifname}";
+        "format-wifi" = "{essid} ({signalStrength}%) ";
+        "format-ethernet" = "{ipaddr}/{cidr} ";
+        "format-disconnected" = "";
+        "tooltip-format" = "{ifname} via {gwaddr} ";
+        "tooltip-format-wifi" = "{essid} ({signalStrength}%) ";
+        "tooltip-format-ethernet" = "{ifname} ";
+        "tooltip-format-disconnected" = "Disconnected";
+        "max-length" = 50;
+      };
+      "sway/window" = { "max-length" = 50; };
+      "battery" = {
+        "format" = "{capacity}% {icon}";
+        "format-icons" = [ "" "" "" "" "" ];
+      };
+      "clock" = { "format-alt" = "{:%a, %d. %b  %H:%M}"; };
+      "pulseaudio" = {
+        "format" = "{volume}% {icon}";
+        "format-bluetooth" = "{volume}% {icon}";
+        "format-muted" = "";
+        "format-icons" = {
+          "headphone" = "";
+          "hands-free" = "";
+          "headset" = "";
+          "phone" = "";
+          "portable" = "";
+          "car" = "";
+          "default" = [ "" "" ];
+        };
+        "scroll-step" = 1;
+        "on-click" = "pavucontrol";
+      };
+      "idle_inhibitor" = {
+        "format" = "{icon}";
+        "format-icons" = {
+          "activated" = "";
+          "deactivated" = "";
+        };
+      };
+    };
+  }
+  
+#+end_src
+

@@ -11,20 +11,7 @@
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
   };
-  outputs = { self, nixpkgs, home-manager, emacs-overlay, system-source, ... }@attrs: {
-    nixosConfigurations.cheeky-monkey = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = attrs;
-      modules = [
-        ("${system-source}/src/configuration.nix")
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.max =
-            import ("${system-source}/src/home-manager.nix");
-        }
-      ];
-    };
-  };
+  outputs = { system-source, ... }@attrs:
+    let source-folder = system-source.defaultPackage."x86_64-linux";
+    in import "${source-folder}/src/build-fun.nix" attrs;
 }
