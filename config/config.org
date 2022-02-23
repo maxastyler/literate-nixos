@@ -390,66 +390,60 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
 #+begin_src nix
   programs.emacs = {
     enable = true;
-    # package = pkgs.emacsWithPackagesFromUsePackage {
-    #   config = ./emacs.el;
-    #   package = pkgs.emacsPgtkGcc;
-    #   alwaysEnsure = true;
-    #   extraEmacsPackages = epkgs: [
-    #     epkgs.use-package
-    #   ];
-    # };
     package = pkgs.emacsPgtkGcc;
     extraPackages = (epkgs: with epkgs; [
-      direnv
-      use-package
-      helm
-      nix-mode
-      org
-      magit
-      ripgrep
-      python
-      projectile
-      projectile-ripgrep
-      helm-projectile
-      doom-modeline
-      yaml-mode
-      nov
-      typescript-mode
-      vterm
-      auctex
-      yasnippet-snippets
-      yasnippet
-      which-key
-      undo-tree
-      treemacs
-      treemacs-projectile
-      treemacs-magit
       all-the-icons
-      kaolin-themes
-      markdown-mode
-      rg
-      rustic
-      racket-mode
-      pdf-tools
-      org-roam
-      cdlatex
-      lsp-pyright
+      auctex
       blacken
-      lsp-mode
-      lsp-ui
+      cdlatex
+      cider
+      clojure-mode
+      company
+      dap-mode
+      direnv
+      direnv
+      doom-modeline
+      edit-indirect
+      elixir-mode
+      flycheck
+      glsl-mode
+      helm
+      helm-projectile
+      helm-rg
+      helm-c-yasnippet
       julia-mode
       julia-repl
+      kaolin-themes
       lsp-julia
-      glsl-mode
-      flycheck
-      elixir-mode
+      lsp-mode
+      lsp-pyright
+      lsp-ui
+      magit
+      markdown-mode
       mix
-      edit-indirect
-      direnv
-      dap-mode
-      company
-      clojure-mode
-      cider
+      nix-mode
+      nov
+      org
+      org-roam
+      pdf-tools
+      projectile
+      projectile-ripgrep
+      python
+      racket-mode
+      rg
+      ripgrep
+      rustic
+      treemacs
+      treemacs-magit
+      treemacs-projectile
+      typescript-mode
+      undo-tree
+      use-package
+      vterm
+      which-key
+      yaml-mode
+      yasnippet
+      yasnippet-snippets
     ]);
   };
 
@@ -1049,7 +1043,7 @@ This package turns the undo tangle emacs usually has into an undo tree
 *** Latex
 #+begin_src emacs-lisp :results silent
   (use-package tex
-    :straight auctex ;; install the package if it's not installed already
+    ;; :straight auctex ;; install the package if it's not installed already
     :mode ("\\.tex\\'" . TeX-latex-mode)
     :config
     (setq TeX-auto-save t)
