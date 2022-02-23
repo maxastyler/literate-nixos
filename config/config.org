@@ -1073,7 +1073,8 @@ This package turns the undo tangle emacs usually has into an undo tree
 #+end_src
 *** Vterm
 #+begin_src emacs-lisp :results silent
-  (use-package vterm)
+  (use-package vterm
+    :bind (("<f5>" . 'vterm)))
 #+end_src
 *** Typescript mode
 #+begin_src emacs-lisp :results silent
