@@ -1,9 +1,12 @@
-{ stdenv, emacs, rsync, ... }:
-stdenv.mkDerivation rec {
+{ stdenv, emacs, rsync, lib, ... }:
+let
+  dir_filter = path: type: lib.hasSuffix ".org" path;
+in stdenv.mkDerivation rec {
   name = "system-source";
   src = builtins.path {
     name = "org-src";
     path = ./.;
+    filter = dir_filter;
   };
   buildPhase = ''
     ${emacs}/bin/emacs -Q --batch --eval "
