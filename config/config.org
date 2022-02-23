@@ -493,7 +493,7 @@ Add in the pinentry options to allow emacs to enter the pin through the minibuff
     extraConfig = ''
     allow-emacs-pinentry
     allow-loopback-pinentry
-    ''
+    '';
   };
 #+end_src
 
