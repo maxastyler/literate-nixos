@@ -875,20 +875,13 @@ Helm + YASnippet
 #+end_src
 
 **** Python
+
 #+begin_src emacs-lisp :results silent
   (use-package lsp-pyright
     :hook
     (python-mode . (lambda ()
                      (require 'lsp-pyright)
                      (lsp))))  ; or lsp-deferred
-#+end_src
-
-Use blacken for python formatting
-#+begin_src emacs-lisp :results silent
-  (use-package blacken
-    :init
-    (setq-default blacken-fast-unsafe t)
-    (setq-default blacken-line-length 80))
 #+end_src
 
 **** Nix
@@ -962,12 +955,18 @@ A better pdf viewer than doc-view
     :config
     (setq python-indent-guess-indent-offset-verbose nil
           org-babel-python-command (python-shell-calculate-command)))
-  
-  (use-package yapfify
-    :defer t
-    :hook (python-mode . yapf-mode))
-  
 #+end_src
+
+Use blacken for python formatting
+
+#+begin_src emacs-lisp
+  (use-package blacken
+    :hook (python-mode . blacken-mode)
+    :init
+    (setq-default blacken-fast-unsafe t)
+    (setq-default blacken-line-length 80))
+#+end_src
+
 *** Racket
 #+begin_src emacs-lisp :results silent
   (use-package racket-mode
