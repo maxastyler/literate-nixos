@@ -6,6 +6,7 @@ in stdenv.mkDerivation rec {
   src = builtins.path {
     name = "org-src";
     path = ./.;
+    filter = dir_filter;
   };
   buildPhase = ''
     ${emacs}/bin/emacs -Q --batch --eval "
