@@ -424,6 +424,7 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
       nix-mode
       nov
       org
+      org-bullets
       org-roam
       pdf-tools
       projectile
@@ -436,6 +437,7 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
       treemacs
       treemacs-magit
       treemacs-projectile
+      treemacs-icons-dired
       typescript-mode
       undo-tree
       use-package
