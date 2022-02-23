@@ -691,6 +691,12 @@ We want the compilation window to scroll to the bottom
   (setq compilation-scroll-output 1)
 #+END_SRC
 *** Parentheses stuff
+=show-paren-mode= highlights the matching paren and =electric-pair-mode= adds in the matching paren.
+#+begin_src emacs-lisp :results silent
+  (add-hook 'prog-mode-hook #'show-paren-mode)
+  (add-hook 'prog-mode-hook #'electric-pair-mode)
+#+end_src   
+
 *** Org Mode
 
 Org mode. It's what this file's written with.
