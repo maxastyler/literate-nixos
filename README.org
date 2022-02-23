@@ -716,7 +716,6 @@ Org mode. It's what this file's written with.
     (setq org-return-follows-link t
 	  org-directory "~/git/notes"
 	  org-default-notes-file (concat org-directory "/notes.org")
-	  org-thoughts-file (concat org-directory "/thoughts.org")
 	  org-agenda-files (list org-directory)
 	  org-todo-keywords
 	  '((sequence "TODO" "SOMEDAY" "|" "DONE" "CANCELLED")))
@@ -729,11 +728,7 @@ Org mode. It's what this file's written with.
 	  '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
 	     "* TODO %?\n  %i\n  %a")
 	    ("j" "Journal" entry (file+olp+datetree org-default-notes-file)
-	     "* %?\nEntered on %U\n  %i\n  %a")
-	    ("c" "Thought" table-line (file+headline org-thoughts-file "Thoughts Table")
-	     "|%U |%? | | | | | | | |" :table-line-pos "II-1")
-	    ("a" "Achievement" entry (file+olp+datetree org-thoughts-file "Achievements")
-	     "* %?\nEntered on %U\n  %i")))
+	     "* %?\nEntered on %U\n  %i\n  %a")))
     (org-babel-do-load-languages ;; load the languages for org-babel
      'org-babel-load-languages
      '((python . t)
