@@ -1,1 +1,1 @@
-/home/max/git/literate-nixos/config/config.org
+../config/config.org
