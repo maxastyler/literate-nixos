@@ -936,7 +936,7 @@ Helm + YASnippet
 #+end_src
 
 *** pdf-tools
-A better pdf viewer than doc-view
+A better pdf viewer than doc-view. Useful with tex.
 #+BEGIN_SRC emacs-lisp :results silent
   (use-package pdf-tools
     :config
