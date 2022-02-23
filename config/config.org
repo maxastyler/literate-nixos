@@ -501,7 +501,7 @@ Add in the pinentry options to allow emacs to enter the pin through the minibuff
 Just some extra packages n stuff that are pretty self explanatory. Alacritty is a fast terminal written in rust.
 Feh is a simple image viewer.
 #+begin_src nix
-  home.packages = with pkgs; [ htop ];
+  home.packages = with pkgs; [ htop teams ];
   programs.alacritty.enable = true;
   programs.feh.enable = true;
 #+end_src
