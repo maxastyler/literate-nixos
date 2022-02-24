@@ -170,9 +170,12 @@ American defaults are NOT WHAT I WANT.
   services.xserver.layout = "gb";
 #+end_src
 **** OpenGL
-I want to be able to run OpenGL stuff.
+I want to be able to run OpenGL stuff, and dri is used to enable vulkan I think? That's what it seems like [[https://nixos.wiki/wiki/AMD_GPU][here]].
 #+begin_src nix
-  hardware.opengl.enable = true;
+  hardware.opengl = {
+    enable = true;
+    driSupport = true;
+  };
 #+end_src
 
 **** Sound
