@@ -661,6 +661,7 @@ And ensure the =use-package= function always installs stuff.
 *** Set some default variables
 #+BEGIN_SRC emacs-lisp :results silent
   (setq-default
+   epa-pinentry-mode 'loopback ;; use emacs for gpg pinentry
    confirm-kill-emacs 'yes-or-no-p ;; confirmation when killing emacs
    indent-tabs-mode nil ;; don't use tabs to indent
    select-enable-clipboard t ;; use the system's clipboard
