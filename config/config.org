@@ -169,6 +169,12 @@ American defaults are NOT WHAT I WANT.
 
   services.xserver.layout = "gb";
 #+end_src
+**** OpenGL
+I want to be able to run OpenGL stuff.
+#+begin_src nix
+  hardware.opengl.enable = true;
+#+end_src
+
 **** Sound
 I'll use bluetooth and pulseaudio
 #+begin_src nix
