@@ -899,7 +899,7 @@ Helm + YASnippet
            (kotlin-mode . lsp)
            (typescript-mode . lsp)
            (js-mode . lsp)
-           (tex-mode . lsp)
+           (LaTeX-mode . lsp)
            (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
   (use-package lsp-ui
