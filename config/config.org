@@ -559,7 +559,7 @@ Then I set the keybindings, which are just an attribute set of string to string.
           };
           "2:10:TPPS/2_Elan_TrackPoint" = {
             accel_profile = "flat";
-            pointer_accel = "1";
+            pointer_accel = "1.0";
           };
         };
       };
