@@ -500,7 +500,7 @@ Add in the pinentry options to allow emacs to enter the pin through the minibuff
     enable = true;
     defaultCacheTtl = 7200;
     enableSshSupport = true;
-    pinentryFlavor = "gnome3";
+    pinentryFlavor = "emacs";
     extraConfig = ''
     allow-emacs-pinentry
     allow-loopback-pinentry
