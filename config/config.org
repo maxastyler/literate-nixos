@@ -228,6 +228,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
       fd
       rnix-lsp
       texlive.combined.scheme-full
+      texlab
       tmux
       vim
       wget
@@ -898,6 +899,7 @@ Helm + YASnippet
            (kotlin-mode . lsp)
            (typescript-mode . lsp)
            (js-mode . lsp)
+           (tex-mode . lsp)
            (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
   (use-package lsp-ui
