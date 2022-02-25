@@ -555,7 +555,7 @@ Then I set the keybindings, which are just an attribute set of string to string.
           "2:7:SynPS/2_Synaptics_TouchPad" = {
             tap = "enabled";
             tap_button_map = "lrm";
-            natural_scroll = "disabled";
+            natural_scroll = "enabled";
           };
           "2:10:TPPS/2_Elan_TrackPoint" = {
             accel_profile = "flat";
