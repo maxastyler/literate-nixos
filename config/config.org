@@ -499,10 +499,12 @@ Add in the pinentry options to allow emacs to enter the pin through the minibuff
     enable = true;
     defaultCacheTtl = 7200;
     enableSshSupport = true;
+    pinentryFlavor = "emacs";
     extraConfig = ''
     allow-emacs-pinentry
     allow-loopback-pinentry
     '';
+
   };
 #+end_src
 
