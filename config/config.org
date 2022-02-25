@@ -879,29 +879,21 @@ Helm + YASnippet
 
 #+end_src
 
-*** Kotlin mode
-#+begin_src emacs-lisp :results silent
-  (use-package kotlin-mode
-    :defer t)
-#+end_src
 *** lsp-mode
 #+begin_src emacs-lisp :results silent
   (use-package lsp-mode
     :init
     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
     (setq lsp-keymap-prefix "C-c l")
-    :config
-    (setq lsp-clients-kotlin-server-executable "~/git/kotlin-language-server/server/build/install/server/bin/kotlin-language-server")
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
            ;; (XXX-mode . lsp)
-           (elixir-mode . lsp)
-           (nix-mode . lsp)
-           (kotlin-mode . lsp)
-           (typescript-mode . lsp)
-           (js-mode . lsp)
-           (LaTeX-mode . lsp)
+           (elixir-mode . lsp-deferred)
+           (nix-mode . lsp-deferred)
+           (typescript-mode . lsp-deferred)
+           (js-mode . lsp-deferred)
+           (LaTeX-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp)
+    :commands lsp lsp-deferred)
   (use-package lsp-ui
     :bind (:map lsp-ui-mode-map
                 ("C-c i" . lsp-ui-imenu)))
