@@ -422,6 +422,7 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
       helm-projectile
       helm-rg
       helm-c-yasnippet
+      hy-mode
       julia-mode
       julia-repl
       kaolin-themes
@@ -866,6 +867,16 @@ Helm + YASnippet
     :config
     (setq helm-yas-space-match-any-greedy t)
     (global-set-key (kbd "C-c y") 'helm-yas-complete))
+#+end_src
+
+*** Hy Mode
+Highlighting and a few other things for the language hy.
+Jedhy is the current completion engine for hy, but it's not going to be [[https://github.com/hylang/hy/discussions/2055][updated until hy 1.0 is out of alpha]].
+At the moment - disable it.
+#+begin_src emacs-lisp
+  (use-package hy-mode
+    :config
+    (setq hy-jedhy--enable? nil))
 #+end_src
 
 *** Julia
