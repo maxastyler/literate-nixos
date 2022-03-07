@@ -232,6 +232,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
       tmux
       vim
       wget
+      unzip
     ];
   programs.steam.enable = true;
   programs.sway-complete.enable = true;
