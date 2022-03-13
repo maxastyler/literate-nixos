@@ -213,6 +213,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
       (python310.withPackages (ps: with ps; [ numpy scipy matplotlib pyrsistent ]))
       black
       cmake
+      fd
       gcc
       git
       gnome3.gnome-tweaks
@@ -222,17 +223,17 @@ I use latex for writing things and making plots look nice, so it's useful to hav
       libvterm
       mpv
       nixfmt
-      pyright
       pass
+      pyright
+      racket
       ripgrep
-      fd
       rnix-lsp
-      texlive.combined.scheme-full
       texlab
+      texlive.combined.scheme-full
       tmux
+      unzip
       vim
       wget
-      unzip
     ];
   programs.steam.enable = true;
   programs.sway-complete.enable = true;
@@ -904,6 +905,7 @@ At the moment - disable it.
            (typescript-mode . lsp-deferred)
            (js-mode . lsp-deferred)
            (LaTeX-mode . lsp-deferred)
+           (ruby-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp lsp-deferred)
   (use-package lsp-ui
