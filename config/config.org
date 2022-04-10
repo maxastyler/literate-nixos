@@ -1069,7 +1069,9 @@ This package turns the undo tangle emacs usually has into an undo tree
   (use-package undo-tree
     :config
     (global-undo-tree-mode) ;; start undo-tree
-    (setq undo-tree-visualizer-diff t))
+    (setq undo-tree-visualizer-diff t
+          ; make undo tree backups inside the .emacs folder
+          undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree-history/"))))
 #+END_SRC
 *** Which-key
 #+begin_src emacs-lisp :results silent
