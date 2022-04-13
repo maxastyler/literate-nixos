@@ -210,7 +210,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
 #+begin_src nix
   environment.systemPackages =  with pkgs; [
       (firefox.override { extraNativeMessagingHosts = [ passff-host ]; })
-      (python310.withPackages (ps: with ps; [ numpy scipy matplotlib pyrsistent ]))
+      (python310.withPackages (ps: with ps; [ numpy scipy matplotlib pyrsistent poetry ]))
       black
       cmake
       fd
