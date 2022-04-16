@@ -191,6 +191,11 @@ Libinput for input stuff. It works with x and wayland.
 #+begin_src nix
   services.xserver.libinput.enable = true;
 #+end_src
+**** Android
+Enable adb for android interaction
+#+begin_src nix
+  programs.adb.enable = true;
+#+end_src
 **** Users
 Just little old me. I add in networkmanager group for user control of network stuff and
 video for some reason (can't remember why, but I need it...)
@@ -199,7 +204,7 @@ Use passwd to set the account password the first time. I'll maybe turn off mutab
   users.users.max = {
     isNormalUser = true;
     extraGroups =
-      [ "wheel" "sudo" "networkmanager" "video" ];
+      [ "wheel" "sudo" "networkmanager" "video" "adbusers" ];
   };
 #+end_src
 **** Packages
