@@ -235,6 +235,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
       rnix-lsp
       texlab
       texlive.combined.scheme-full
+      texmacs
       tmux
       unzip
       vim
