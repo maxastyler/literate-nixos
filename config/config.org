@@ -1003,7 +1003,12 @@ A better pdf viewer than doc-view. Useful with tex.
   (use-package python
     :config
     (setq python-indent-guess-indent-offset-verbose nil
-          org-babel-python-command (python-shell-calculate-command)))
+          org-babel-python-command (python-shell-calculate-command))
+    :bind (:map python-mode-map
+                ("<f6>" .
+                 (lambda ()
+                   (interactive)
+                   (projectile-run-async-shell-command-in-root "python -m pytest")))))
 #+end_src
 
 Use blacken for python formatting
