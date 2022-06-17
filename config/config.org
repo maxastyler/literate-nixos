@@ -1012,9 +1012,10 @@ A better pdf viewer than doc-view. Useful with tex.
                 ("<f7>" .
                  (lambda ()
                    (interactive)
-                   (projectile-run-async-shell-command-in-root "python %s"
-                                                               (file-relative-name buffer-file-name
-                                                                                   projectile-project-root))))))
+                   (projectile-run-async-shell-command-in-root (format
+                                                                "python %s"
+                                                                (file-relative-name buffer-file-name
+                                                                                    projectile-project-root)))))))
 #+end_src
 
 Use blacken for python formatting
