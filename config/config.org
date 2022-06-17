@@ -409,7 +409,7 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
 #+begin_src nix
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsPgtkGcc;
+    package = pkgs.emacsPgtkNativeComp;
     extraPackages = (epkgs: with epkgs; [
       all-the-icons
       auctex
