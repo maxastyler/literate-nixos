@@ -1008,7 +1008,7 @@ A better pdf viewer than doc-view. Useful with tex.
                 ("<f6>" .
                  (lambda ()
                    (interactive)
-                   (projectile-run-async-shell-command-in-root "python -m pytest")))
+                   (projectile-run-async-shell-command-in-root "python -m pytest tests")))
                 ("<f7>" .
                  (lambda ()
                    (interactive)
