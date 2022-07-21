@@ -450,6 +450,7 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
       projectile
       projectile-ripgrep
       python
+      python-pytest
       racket-mode
       rg
       ripgrep
@@ -1026,6 +1027,11 @@ Use blacken for python formatting
     :init
     (setq-default blacken-fast-unsafe t)
     (setq-default blacken-line-length 80))
+#+end_src
+
+Python pytest for easier pytest interactions
+#+begin_src emacs-lisp
+  (use-package python-pytest)
 #+end_src
 
 *** Racket
