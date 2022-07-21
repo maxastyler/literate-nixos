@@ -1006,10 +1006,6 @@ A better pdf viewer than doc-view. Useful with tex.
     (setq python-indent-guess-indent-offset-verbose nil
           org-babel-python-command (python-shell-calculate-command))
     :bind (:map python-mode-map
-                ("<f6>" .
-                 (lambda ()
-                   (interactive)
-                   (projectile-run-async-shell-command-in-root "python -m pytest tests")))
                 ("<f7>" .
                  (lambda ()
                    (interactive)
@@ -1031,7 +1027,10 @@ Use blacken for python formatting
 
 Python pytest for easier pytest interactions
 #+begin_src emacs-lisp
-  (use-package python-pytest)
+  (use-package python-pytest
+    :after python
+    :bind (:map python-mode-map
+                ("<f6>" . #'python-pytest-popup)))
 #+end_src
 
 *** Racket
