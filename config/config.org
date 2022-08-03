@@ -449,6 +449,7 @@ I also enable the emacs service, so I can use emacsclient instead of waiting yea
       pdf-tools
       projectile
       projectile-ripgrep
+      protobuf-mode
       python
       python-pytest
       racket-mode
@@ -999,6 +1000,11 @@ A better pdf viewer than doc-view. Useful with tex.
   (use-package projectile-ripgrep
     :after (projectile))
 #+end_src
+*** Protobuf
+#+begin_src emacs-lisp :results silent
+  (use-package protobuf-mode)
+#+end_src
+
 *** Python
 #+begin_src emacs-lisp :results silent
   (use-package python
