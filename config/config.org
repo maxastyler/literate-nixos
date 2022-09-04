@@ -224,6 +224,7 @@ I use latex for writing things and making plots look nice, so it's useful to hav
       gnome3.gnome-tweaks
       gnumake
       gnupg
+      jetbrains.idea-ultimate
       libtool
       libvterm
       mpv
